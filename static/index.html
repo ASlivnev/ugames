@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAMES PARSER</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <style>
+        #app {
+            padding: 50px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+
+        a:visited {
+            color: gray; /* Установите желаемый цвет для посещенных ссылок */
+        }
+
+        .textarea:not([rows]) {
+            max-height: 40em;
+            min-height: 3em;
+        }
+
+        textarea {
+            opacity: 0.1;
+        }
+
+        textarea:focus {
+            opacity: 1;
+        }
+
+        textarea:hover {
+            opacity: 1;
+        }
+
+        .loadingImg {
+            margin: 0 auto;
+            width: 130px;
+            margin-top: 20px;
+            margin-left: 45%;
+        }
+
+        .comment {
+            background-color: #fff3a1;
+            padding: 10px;
+            border-radius: 10px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <form @submit.prevent="submitForm">
+        <div class="field is-grouped">
+            <p class="control is-expanded">
+                <input
+                        class="input"
+                        type="text"
+                        v-model="keyWord"
+                        :disabled="isLoading"
+                        placeholder="Введите ключевое слово" required>
+            </p>
+            <p class="control">
+                <button
+                        class="button is-info"
+                        type="submit"
+                        :disabled="isLoading"
+                >Отправить</button>
+            </p>
+        </div>
+    </form>
+    <div v-if="result">
+        <pre>{{ result }}</pre>
+    </div>
+
+    <img class="loadingImg" src="img/XOsX.gif" alt="" v-if="isLoading">
+    
+    <hr>
+
+    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+        <thead>
+        <tr>
+            <th><b>#</b></th>
+            <!--
+            <th>ID</th>
+            -->
+            <th>Поисковый запрос</th>
+            <th>Репозиторий</th>
+            <th>Homepage</th>
+            <!--
+            <th>Упоминания</th>
+            -->
+            <th>Комментарий</th>
+            <th>Дата</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(repo, index) in repos" :key="repo.id">
+            <td><b>{{index + 1}}</b></td>
+            <!--
+            <td>{{ repo.id }}</td>
+            -->
+            <td>{{ repo.key_word }}</td>
+            <td><a :href="'https://github.com/' + repo.repo_name" target="_blank">{{ repo.repo_name }}</a></td>
+            <td>
+                <a :href="repo.homepage" target="_blank">{{ repo.homepage }}</a>
+                <br>
+                <div class="comment" v-if="repo.comment ">
+                    <small>{{ repo.comment }}</small>
+                </div>
+
+            </td>
+            <!--
+            <td>{{ repo.content }}</td>
+            -->
+            <td>
+                <textarea class="textarea is-small"  cols="30" v-model="repo.comment" @blur="addComment(repo.id, repo.comment)">>{{ repo.comment }}</textarea>
+            </td>
+
+            <td style="white-space: nowrap;">{{ new Date(repo.created_at).toISOString().split('T')[0] }}</td>
+
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            repos: [],
+            result: null,
+            isLoading: false
+        },
+        mounted() {
+            this.fetchRepos();
+        },
+        methods: {
+            fetchRepos() {
+                fetch('/api/repos')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.repos = data;
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при получении данных:', error);
+                    });
+            },
+            addComment(id, comment) {
+                if (comment !== null) {
+                    console.log(`Добавлен комментарий к репозиторию ${id}: ${comment}`);
+                    this.updateComment(id, comment)
+                }
+            },
+            async updateComment(id, comment) {
+                try {
+                    const response = await axios.put('/api/addComment', {
+                        id: id,
+                        comment: comment
+                    });
+                    console.log('Comment updated successfully:', response.data);
+                } catch (error) {
+                    console.error('Error updating comment:', error);
+                }
+            },
+            async submitForm() {
+                this.isLoading = true;
+                try {
+                    const response = await axios.post('/api/collectGitRepos', {
+                        key_word: this.keyWord
+                    });
+                    this.result = response.data.message; // сохраняем результат в data
+                } catch (error) {
+                    console.error('Ошибка при отправке запроса:', error);
+                    this.result = "Не удалось выполнить запрос."
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+
+        }
+    });
+</script>
+</body>
+</html>
