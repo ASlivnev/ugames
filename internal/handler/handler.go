@@ -53,7 +53,7 @@ func (h *Handler) CollectGitRepos(c *fiber.Ctx) error {
 		})
 	}
 
-	githubResponse := GetGitRepos(req.KeyWord, 1)
+	githubResponse := h.GetGitRepos(req.KeyWord, 1)
 	for _, item := range githubResponse.Items {
 		h.pool.InsertRepo(item.FullName, item.Homepage, req.KeyWord)
 	}
@@ -61,7 +61,7 @@ func (h *Handler) CollectGitRepos(c *fiber.Ctx) error {
 	pages := int(math.Ceil(float64(githubResponse.TotalCount) / 100))
 	if pages > 1 {
 		for i := 2; i <= pages; i++ {
-			githubResponse = GetGitRepos(req.KeyWord, i)
+			githubResponse = h.GetGitRepos(req.KeyWord, i)
 			for _, item := range githubResponse.Items {
 				h.pool.InsertRepo(item.FullName, item.Homepage, req.KeyWord)
 			}
@@ -73,7 +73,6 @@ func (h *Handler) CollectGitRepos(c *fiber.Ctx) error {
 	resp.Data = nil
 
 	go h.CheckReposFunc()
-
 	return c.JSON(resp)
 }
 
@@ -112,7 +111,7 @@ func (h *Handler) CheckReposFunc() error {
 	return nil
 }
 
-func GetGitRepos(keyWord string, page int) models.GitReposResp {
+func (h *Handler) GetGitRepos(keyWord string, page int) models.GitReposResp {
 	encodedString := url.QueryEscape(keyWord)
 	pageStr := strconv.Itoa(page)
 
@@ -124,6 +123,7 @@ func GetGitRepos(keyWord string, page int) models.GitReposResp {
 		log.Error().Msg(err.Error())
 	}
 
+	reqGit.Header.Set("Authorization", "Bearer "+h.cnf.GithubToken)
 	respGit, err := client.Do(reqGit)
 	if err != nil {
 		log.Error().Msg(err.Error())
@@ -152,6 +152,7 @@ func (h *Handler) CheckGetRepo(repo models.Repos) error {
 		log.Error().Msg(err.Error())
 	}
 
+	reqGit.Header.Set("Authorization", "Bearer "+h.cnf.GithubToken)
 	respGit, err := client.Do(reqGit)
 	if err != nil {
 		log.Error().Msg(err.Error())
@@ -177,6 +178,13 @@ func (h *Handler) CheckGetRepo(repo models.Repos) error {
 		"gamejolt.com",
 		"unityroom.com",
 		"maikire.xyz",
+		".gif",
+		".png",
+		".jpg",
+		"simmer.io",
+		"pubnub.com",
+		"kongregate.com",
+		"web.app",
 	}
 
 	// Приводим текст к нижнему регистру для сравнения

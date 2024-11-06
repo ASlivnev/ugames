@@ -3,7 +3,8 @@ package config
 import "github.com/spf13/viper"
 
 type Cnf struct {
-	Db Db
+	Db          Db
+	GithubToken string
 }
 
 type Db struct {
@@ -23,6 +24,7 @@ func NewConfig() *Cnf {
 	host := viper.GetString("SUPA_POSTGRE_HOST")
 	port := viper.GetString("SUPA_POSTGRE_PORT")
 	name := viper.GetString("SUPA_POSTGRE_DB")
+	gitToken := viper.GetString("GITHUB_TOKEN")
 
 	return &Cnf{
 		Db: Db{
@@ -32,5 +34,6 @@ func NewConfig() *Cnf {
 			Host: host,
 			Port: port,
 		},
+		GithubToken: gitToken,
 	}
 }
