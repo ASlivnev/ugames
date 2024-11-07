@@ -1,0 +1,61 @@
+#app {
+    padding: 50px;
+}
+table {
+    width: 100%;
+    table-layout: auto; /* Устанавливаем auto, чтобы содержимое влияло на ширину */
+    border-collapse: collapse;
+    overflow-x: auto; /* Добавляем горизонтальную прокрутку, если таблица не помещается */
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    word-wrap: break-word; /* Автоматически разбивает длинные слова */
+    word-break: break-word; /* Разрешает перенос по словам */
+    white-space: normal; /* Убираем запрет на перенос текста */
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+/* Прокрутка для таблицы на мобильных устройствах */
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+a:visited {
+    color: gray; /* Установите желаемый цвет для посещенных ссылок */
+}
+
+.textarea:not([rows]) {
+    max-height: 40em;
+    min-height: 3em;
+}
+
+textarea {
+    opacity: 0.1;
+}
+
+textarea:focus {
+    opacity: 1;
+}
+
+textarea:hover {
+    opacity: 1;
+}
+
+.loadingImg {
+    margin: 0 auto;
+    width: 130px;
+    margin-top: 20px;
+    margin-left: 45%;
+}
+
+.comment {
+    background-color: #fff3a1;
+    padding: 10px;
+    border-radius: 10px;
+}

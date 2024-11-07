@@ -67,6 +67,17 @@ func (repo *Repo) GetKeyWordsList() ([]models.KeyWord, error) {
 	return data, err
 }
 
+func (repo *Repo) DeallocateAll() error {
+	sql := `DEALLOCATE PREPARE ALL;`
+	query, err := repo.db.Query(context.Background(), sql)
+	if err != nil {
+		log.Error().Msg("[PGXPOOL] DeallocateAll : " + err.Error())
+	}
+	defer query.Close()
+
+	return err
+}
+
 func (repo *Repo) GetUncheckedRepos() ([]models.Repos, error) {
 	sql := `SELECT id, repo_name, homepage, is_checked FROM ugames.repos WHERE is_checked isnull OR is_checked = false  ORDER BY created_at DESC`
 	var data []models.Repos

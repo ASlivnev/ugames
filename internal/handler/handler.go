@@ -37,10 +37,17 @@ func (h *Handler) GetKeyWordsList(c *fiber.Ctx) error {
 }
 
 func (h *Handler) GetCheckedReposList(c *fiber.Ctx) error {
+	err := h.pool.DeallocateAll()
+	if err != nil {
+		log.Error().Msg(err.Error())
+	}
+
 	data, err := h.pool.GetCheckedRepos()
 	if err != nil {
 		log.Error().Msg(err.Error())
 	}
+
+	//go h.CheckReposFunc()
 	return c.JSON(data)
 }
 
@@ -233,6 +240,8 @@ func (h *Handler) AddComment(c *fiber.Ctx) error {
 		resp.Message = "Ошибка при добавлении комментария!"
 		return c.JSON(resp)
 	}
+
+	go h.pool.DeallocateAll()
 
 	resp.Status = "Success"
 	resp.Message = "Комментарий добавлен успешно!"
