@@ -74,5 +74,16 @@ new Vue({
                 this.isLoading = false;
             }
         },
+        async dbFix() {
+            try {
+                let response = await axios.get('/api/dbfix');
+                if (response.data.status === 'Success') {
+                    alert("Должно помочь! Обнови страницу.")
+                }
+            } catch (error) {
+                alert("Не помогло ((( Попробуй еще раз.")
+                console.error('Ошибка при отправке запроса:', error);
+            }
+        }
     }
 });

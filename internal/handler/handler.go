@@ -192,6 +192,7 @@ func (h *Handler) CheckGetRepo(repo models.Repos) error {
 		"pubnub.com",
 		"kongregate.com",
 		"web.app",
+		"sharemygame.com",
 	}
 
 	// Приводим текст к нижнему регистру для сравнения
@@ -241,10 +242,22 @@ func (h *Handler) AddComment(c *fiber.Ctx) error {
 		return c.JSON(resp)
 	}
 
-	go h.pool.DeallocateAll()
+	//go h.pool.DeallocateAll()
 
 	resp.Status = "Success"
 	resp.Message = "Комментарий добавлен успешно!"
+	return c.JSON(resp)
+}
+
+func (h *Handler) FixDb(c *fiber.Ctx) error {
+	err := h.pool.DeallocateAll()
+	if err != nil {
+		log.Error().Msg(err.Error())
+	}
+
+	var resp models.Resp
+	resp.Status = "Success"
+	resp.Message = "Выполнена волшебная SQL команда!"
 	return c.JSON(resp)
 }
 
