@@ -29,14 +29,24 @@ new Vue({
     },
     methods: {
         fetchRepos() {
-            fetch('/api/repos')
-                .then(response => response.json())
-                .then(data => {
-                    this.repos = data;
-                })
-                .catch(error => {
+            try {
+                this.isLoading = true;
+                fetch('/api/repos')
+                    .then(response => response.json())
+                    .then(data => {
+                        this.repos = data;
+                    })
+                    .catch(error => {
+                        console.error('Ошибка при получении данных:', error);
+                    });
+                } catch (error) {
+                    this.isLoading = true;
                     console.error('Ошибка при получении данных:', error);
-                });
+                } finally {
+                    this.isLoading = false;
+                }
+            }
+
         },
         addComment(id, comment) {
             if (comment !== null) {
