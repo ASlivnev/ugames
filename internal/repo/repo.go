@@ -100,7 +100,7 @@ func (repo *Repo) GetUncheckedRepos() ([]models.Repos, error) {
 }
 
 func (repo *Repo) GetCheckedRepos() ([]models.Repos, error) {
-	sql := `SELECT id, key_word, repo_name, homepage, content, comment, created_at FROM ugames.repos WHERE is_checked = true AND homepage <> '' OR content <> '' ORDER BY created_at DESC`
+	sql := `SELECT id, key_word, repo_name, homepage, content, comment, created_at FROM ugames.repos WHERE is_checked = true AND (homepage <> '' OR content <> '')  AND (comment <> '-' OR comment IS NULL) ORDER BY created_at DESC;`
 	var data []models.Repos
 	rows, err := repo.db.Query(context.Background(), sql)
 	if err != nil {
