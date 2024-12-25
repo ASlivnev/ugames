@@ -3,8 +3,10 @@ package handler
 import (
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog/log"
+	"io/ioutil"
 	"math"
 	"net/http"
 	"net/url"
@@ -258,6 +260,121 @@ func (h *Handler) FixDb(c *fiber.Ctx) error {
 	var resp models.Resp
 	resp.Status = "Success"
 	resp.Message = "Выполнена волшебная SQL команда!"
+	return c.JSON(resp)
+}
+
+func (h *Handler) CollectGMGames(c *fiber.Ctx) error {
+	// URL API
+	baseURL := "https://gamemonetize.com/feed.php?format=0&num=50&page="
+
+	// Цикл по страницам от 1 до 666
+	for page := 1; page <= 666; page++ {
+		// Формируем URL для текущей страницы
+		apiURL := fmt.Sprintf("%s%d", baseURL, page)
+		// Запрос к API
+		resp, err := http.Get(apiURL)
+		if err != nil {
+			fmt.Println("Ошибка запроса:", err)
+		}
+		defer resp.Body.Close()
+
+		// Чтение ответа
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			fmt.Println("Ошибка чтения ответа:", err)
+		}
+
+		// Распарсить XML
+		var games []models.GmGame
+		err = json.Unmarshal(body, &games)
+		if err != nil {
+			fmt.Println("Ошибка парсинга json:", err)
+		}
+
+		// Вывод данных
+		for _, game := range games {
+			fmt.Printf("ID: %s\nTitle: %s\nDescription: %s\nURL: %s\n\n", game.ID, game.Title, game.Description, game.URL)
+			h.pool.InsertGmGame(game)
+		}
+	}
+	return nil
+}
+
+func (h *Handler) FindConstructGame(c *fiber.Ctx) error {
+	for i := 0; i < 40; i++ {
+		games, _ := h.pool.GetGmGames()
+		log.Info().Msg("Получено " + strconv.Itoa(len(games)) + " игр для проверки.")
+
+		for _, game := range games {
+			url := game.URL
+
+			resp, err := http.Get(url)
+			if err != nil {
+				fmt.Println("Ошибка при запросе URL:", err)
+				return nil
+			}
+			defer resp.Body.Close()
+
+			// Проверяем статус ответа
+			if resp.StatusCode != http.StatusOK {
+				fmt.Printf("Ошибка: статус ответа %d\n", resp.StatusCode)
+				return nil
+			}
+
+			// Читаем содержимое страницы
+			body, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				fmt.Println("Ошибка при чтении содержимого страницы:", err)
+				return nil
+			}
+
+			// Преобразуем содержимое в строку
+			pageContent := string(body)
+
+			// Проверяем наличие строки "Construct" (игнорируя регистр)
+			if strings.Contains(strings.ToLower(pageContent), "construct") {
+				game.IsConstruct = "Y"
+				h.pool.UpdateGmGame(game)
+				log.Info().Msg(url)
+			} else {
+				game.IsConstruct = "N"
+				h.pool.UpdateGmGame(game)
+			}
+		}
+	}
+	return nil
+}
+
+func (h *Handler) GetConstructGamesList(c *fiber.Ctx) error {
+	filter := c.Params("filter")
+	data, err := h.pool.GetConstructGames(filter)
+	if err != nil {
+		log.Error().Msg(err.Error())
+	}
+	return c.JSON(data)
+}
+
+func (h *Handler) AddCommentC3(c *fiber.Ctx) error {
+	var resp models.Resp
+	var req models.ReqCommentC3
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	err := h.pool.AddCommentC3(req)
+	if err != nil {
+		log.Error().Msg(err.Error())
+		resp.Status = "Error"
+		resp.Message = "Ошибка при добавлении комментария!"
+		return c.JSON(resp)
+	}
+
+	//go h.pool.DeallocateAll()
+
+	resp.Status = "Success"
+	resp.Message = "Комментарий добавлен успешно!"
 	return c.JSON(resp)
 }
 

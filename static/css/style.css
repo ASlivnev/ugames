@@ -59,3 +59,8 @@ textarea:hover {
     padding: 10px;
     border-radius: 10px;
 }
+
+.c3GameImg {
+    width: 250px;
+    height: 100%;
+}

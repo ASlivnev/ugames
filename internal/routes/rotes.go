@@ -19,5 +19,11 @@ func NewRoutes(h *handler.Handler) *fiber.App {
 	app.Get("/api/checkRepos", h.CheckRepos)
 	app.Put("/api/addComment", h.AddComment)
 	app.Get("/api/dbfix", h.FixDb)
+
+	app.Get("/api/collectGMGames", h.CollectGMGames)
+	app.Get("/api/findConstruct", h.FindConstructGame)
+	app.Get("/api/construct/:filter", h.GetConstructGamesList)
+	app.Put("/api/updateC3Game", h.AddCommentC3)
+
 	return app
 }

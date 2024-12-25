@@ -46,3 +46,25 @@ type ReqComment struct {
 	Id      int    `json:"id"`
 	Comment string `json:"comment"`
 }
+
+type ReqCommentC3 struct {
+	Id        int       `json:"id"`
+	List      string    `json:"list"`
+	Comment   string    `json:"comment"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
+type GmGame struct {
+	ID           int        `json:"id"`
+	Title        string     `json:"title"`
+	Description  string     `json:"description"`
+	Instructions string     `json:"instructions"`
+	URL          string     `json:"url"`
+	Category     string     `json:"category"`
+	Tags         string     `json:"tags"`
+	Thumb        string     `json:"thumb"`
+	IsConstruct  string     `json:"is_construct"`
+	List         *string    `json:"list"`
+	Comment      *string    `json:"comment"`
+	UpdatedAt    *time.Time `json:"updated_at"`
+}

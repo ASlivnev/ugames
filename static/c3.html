@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C3</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+    <hr>
+    <a href="#" @click="fetchGames('all')">Все</a> // <a href="#"  @click="fetchGames('white')">Белый лист</a> // <a href="#" @click="fetchGames('grey')">Серый лист</a> // <a href="#" @click="fetchGames('black')">Черный лист</a> // <a href="#" @click="fetchGames('published')">Опубликовано</a>
+    <hr>
+    <img class="loadingImg" src="img/XOsX.gif" alt="" v-if="isLoading">
+
+    <b v-if="!isLoading">Найдено игр: {{games.length}}</b>
+    <hr>
+    <div class="table-wrapper">
+        <div class="table-wrapper">
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+
+                <tr v-for="(game, index) in games" :key="game.id">
+                    <td style="width: 50px; text-align: center">{{index+1}}</td>
+                    <td style="width: 300px; text-align: center">
+                        <img :src="game.thumb" class="c3GameImg">
+                        <br>
+                    </td>
+                    <td>
+                        <h2><b>{{game.title}}</b></h2>
+                        <div>{{game.comment}}</div>
+                        <hr>
+                        <a :href="game.url" target="_blank">{{game.url}}</a>
+                        <hr>
+                        {{game.description}}
+                    </td>
+                    
+                    <td>
+                        <select class="select" v-model="game.list">
+                            <option value="white">Белый лист</option>
+                            <option value="grey">Серый лист</option>
+                            <option value="black">Черный лист</option>
+                            <option value="published">Опубликовано</option>
+                        </select>
+
+                        <br><br>
+                        <textarea class="textarea" v-model="game.comment"></textarea>
+
+                        <br><br>
+                        <button @click="saveGame(game)" class="button is-link" :disabled="!game.list">Сохранить</button>
+                        
+                    </td>
+                </tr>
+            </table>
+    </div>
+
+</div>
+
+<script src="js/c3.js"></script>
+</body>
+</html>

@@ -145,3 +145,91 @@ func (repo *Repo) InsertRepo(repoName, homePage, keyWord string) {
 		log.Error().Msg(err.Error())
 	}
 }
+
+func (repo *Repo) InsertGmGame(game models.GmGame) {
+	sqlStatement := `INSERT INTO ugames.gm_games (category, description, tags, thumb, title, url, instructions) VALUES ($1,$2,$3,$4, $5,$6,$7) ON CONFLICT DO NOTHING`
+	_, err := repo.db.Exec(context.Background(), sqlStatement, game.Category, game.Description, game.Tags, game.Thumb, game.Title, game.URL, game.Instructions)
+	if err != nil {
+		log.Error().Msg(err.Error())
+	}
+}
+
+func (repo *Repo) GetGmGames() ([]models.GmGame, error) {
+	sql := `SELECT id,url FROM ugames.gm_games WHERE is_construct is null LIMIT 1000;`
+	var data []models.GmGame
+	rows, err := repo.db.Query(context.Background(), sql)
+	if err != nil {
+		log.Error().Msg("[PGXPOOL] GetGmGames select: " + err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var g models.GmGame
+		err = rows.Scan(&g.ID, &g.URL)
+		if err != nil {
+			log.Error().Msg("[PGXPOOL] GetGmGames rows scan: " + err.Error())
+		}
+		data = append(data, g)
+	}
+
+	return data, nil
+}
+
+func (repo *Repo) UpdateGmGame(game models.GmGame) error {
+	_, err := repo.db.Exec(context.Background(), "UPDATE ugames.gm_games SET is_construct=$2 WHERE id=$1", game.ID, game.IsConstruct)
+	if err != nil {
+		log.Error().Msg("[PGXPOOL] UpdateGmGame update: " + err.Error())
+		return err
+	}
+	return nil
+}
+
+func (repo *Repo) GetConstructGames(filter string) ([]models.GmGame, error) {
+	var sql string
+	if filter == "all" {
+		sql = `SELECT * FROM ugames.gm_games WHERE is_construct='Y' AND list is null ORDER BY updated_at DESC LIMIT 50;`
+	}
+
+	if filter == "published" {
+		sql = `SELECT * FROM ugames.gm_games WHERE is_construct='Y' AND list = 'published' ORDER BY updated_at DESC ;`
+	}
+
+	if filter == "white" {
+		sql = `SELECT * FROM ugames.gm_games WHERE is_construct='Y' AND list = 'white' ORDER BY updated_at DESC ;`
+	}
+
+	if filter == "grey" {
+		sql = `SELECT * FROM ugames.gm_games WHERE is_construct='Y' AND list = 'grey' ORDER BY updated_at DESC ;`
+	}
+
+	if filter == "black" {
+		sql = `SELECT * FROM ugames.gm_games WHERE is_construct='Y' AND list = 'black' ORDER BY updated_at DESC ;`
+	}
+
+	var data []models.GmGame
+	rows, err := repo.db.Query(context.Background(), sql)
+	if err != nil {
+		log.Error().Msg("[PGXPOOL] GetGmGames select: " + err.Error())
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var g models.GmGame
+		err = rows.Scan(&g.ID, &g.Title, &g.Description, &g.Instructions, &g.URL, &g.Category, &g.Tags, &g.Thumb, &g.IsConstruct, &g.List, &g.Comment, &g.UpdatedAt)
+		if err != nil {
+			log.Error().Msg("[PGXPOOL] GetConstructGames rows scan: " + err.Error())
+		}
+		data = append(data, g)
+	}
+
+	return data, nil
+}
+
+func (repo *Repo) AddCommentC3(comment models.ReqCommentC3) error {
+	_, err := repo.db.Exec(context.Background(), "UPDATE ugames.gm_games SET comment=$1, list = $3, updated_at = NOW() WHERE id=$2", comment.Comment, comment.Id, comment.List)
+	if err != nil {
+		log.Error().Msg("[PGXPOOL] AddCommentC3 update: " + err.Error())
+		return err
+	}
+	return nil
+}
