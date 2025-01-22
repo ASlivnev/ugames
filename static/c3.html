@@ -9,21 +9,39 @@
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
     <link rel="stylesheet" href="css/style.css">
+
 </head>
 <body>
 <div id="app">
+    <input
+            class="input is-link"
+            type="text"
+            placeholder="Название игры"
+            v-model="search"
+    />
+
+    <br>
+    <br>
+    <div class="control">
+        <button
+                class="button is-primary"
+                :disabled="search.length < 2"
+                @click="fetchSearchGames"
+        >Найти</button>
+    </div>
+
     <hr>
     <a href="#" @click="fetchGames('all')">Все</a> // <a href="#"  @click="fetchGames('white')">Белый лист</a> // <a href="#" @click="fetchGames('grey')">Серый лист</a> // <a href="#" @click="fetchGames('black')">Черный лист</a> // <a href="#" @click="fetchGames('published')">Опубликовано</a>
     <hr>
     <img class="loadingImg" src="img/XOsX.gif" alt="" v-if="isLoading">
 
     <b v-if="!isLoading">Найдено игр: {{games.length}}</b>
+    <b v-if="games == null">Ничего не найдено (((</b>
     <hr>
     <div class="table-wrapper">
         <div class="table-wrapper">
             <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
-
-                <tr v-for="(game, index) in games" :key="game.id">
+                <tr v-for="(game, index) in games" :key="game.id" v-if="!game.hidden">
                     <td style="width: 50px; text-align: center">{{index+1}}</td>
                     <td style="width: 300px; text-align: center">
                         <img :src="game.thumb" class="c3GameImg">
@@ -51,7 +69,9 @@
 
                         <br><br>
                         <button @click="saveGame(game)" class="button is-link" :disabled="!game.list">Сохранить</button>
-                        
+                        <br><br>
+                        <button @click="saveGreyGame(game)" class="button ">Скрыть</button>
+
                     </td>
                 </tr>
             </table>

@@ -271,7 +271,7 @@ func (h *Handler) CollectGMGames(c *fiber.Ctx) error {
 	for page := 1; page <= 666; page++ {
 		// Формируем URL для текущей страницы
 		apiURL := fmt.Sprintf("%s%d", baseURL, page)
-		// Запрос к API
+		fmt.Println(apiURL)
 		resp, err := http.Get(apiURL)
 		if err != nil {
 			fmt.Println("Ошибка запроса:", err)
@@ -289,6 +289,7 @@ func (h *Handler) CollectGMGames(c *fiber.Ctx) error {
 		err = json.Unmarshal(body, &games)
 		if err != nil {
 			fmt.Println("Ошибка парсинга json:", err)
+			break
 		}
 
 		// Вывод данных
@@ -318,7 +319,7 @@ func (h *Handler) FindConstructGame(c *fiber.Ctx) error {
 			// Проверяем статус ответа
 			if resp.StatusCode != http.StatusOK {
 				fmt.Printf("Ошибка: статус ответа %d\n", resp.StatusCode)
-				return nil
+				continue
 			}
 
 			// Читаем содержимое страницы
@@ -376,6 +377,22 @@ func (h *Handler) AddCommentC3(c *fiber.Ctx) error {
 	resp.Status = "Success"
 	resp.Message = "Комментарий добавлен успешно!"
 	return c.JSON(resp)
+}
+
+func (h *Handler) SearchC3games(c *fiber.Ctx) error {
+	var req models.Search
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "Invalid request body",
+		})
+	}
+
+	data, err := h.pool.GetC3GamesSearch(req.SearchRequest)
+	if err != nil {
+		log.Error().Msg(err.Error())
+	}
+
+	return c.JSON(data)
 }
 
 //https://supabase.com/dashboard/project/omdkwxnqhidnjisdfboh/settings/database

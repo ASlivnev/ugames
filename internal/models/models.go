@@ -68,3 +68,22 @@ type GmGame struct {
 	Comment      *string    `json:"comment"`
 	UpdatedAt    *time.Time `json:"updated_at"`
 }
+
+type GmGame2 struct {
+	ID           int
+	Title        string
+	Description  string
+	Instructions *string // Используем указатель
+	URL          string
+	Category     *string // Используем указатель
+	Tags         *string // Используем указатель
+	Thumb        string
+	IsConstruct  *string // Используем указатель
+	List         *string // Используем указатель
+	Comment      *string // Используем указатель
+	UpdatedAt    time.Time
+}
+
+type Search struct {
+	SearchRequest string `json:"searchRequest"`
+}

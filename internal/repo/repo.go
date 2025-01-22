@@ -233,3 +233,37 @@ func (repo *Repo) AddCommentC3(comment models.ReqCommentC3) error {
 	}
 	return nil
 }
+
+func (repo *Repo) GetC3GamesSearch(searchReq string) ([]models.GmGame, error) {
+	sql := `SELECT id, title, description, url, thumb FROM ugames.gm_games 
+            WHERE title ILIKE '%' || $1 || '%' 
+              AND is_construct = 'Y' 
+            ORDER BY updated_at DESC 
+            LIMIT 500;`
+
+	var data []models.GmGame
+	rows, err := repo.db.Query(context.Background(), sql, searchReq)
+	if err != nil {
+		log.Error().Msg("[PGXPOOL] GetC3GamesSearch select: " + err.Error())
+		return nil, err // Возвращаем ошибку
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var g models.GmGame
+		err = rows.Scan(&g.ID, &g.Title, &g.Description, &g.URL, &g.Thumb)
+		if err != nil {
+			log.Error().Msg("[PGXPOOL] GetC3GamesSearch rows scan: " + err.Error())
+			return nil, err // Возвращаем ошибку при сканировании
+		}
+		data = append(data, g)
+	}
+
+	// Проверяем ошибки после итерации
+	if rows.Err() != nil {
+		log.Error().Msg("[PGXPOOL] GetGamesSearch rows iteration: " + rows.Err().Error())
+		return nil, rows.Err()
+	}
+
+	return data, nil
+}
